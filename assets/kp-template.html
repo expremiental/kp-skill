@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Коммерческое предложение</title>
+<!--
+  ШАБЛОН КП — альбомная дека 16:9 (338×190 мм), под показ на экране и отправку в PDF.
+
+  Как пользоваться:
+  1. --accent — фирменный цвет компании ОТПРАВИТЕЛЯ. Достать точный hex с их сайта, не подбирать на глаз.
+     --accent-soft — тот же цвет с прозрачностью ~8%.
+  2. Одна полоса = один смысловой блок. Не запихивать два блока на полосу.
+  3. Неиспользуемые компоненты удалять вместе с полосой. Пустых заголовков не оставлять.
+  4. Крупные числа (.kpi .num) — это якоря. На полосе их максимум три, иначе ни одно не работает.
+  5. Дека — ЧИСТОВОЙ документ. Плейсхолдеров в ней нет: ни [НУЖНО], ни ___, ни «указать».
+     Блок, для которого нет фактов, НЕ СОБИРАЕТСЯ вовсе — полоса из плашек хуже её отсутствия.
+     Список пробелов агент отдаёт человеку в чат, отдельно от файла.
+  6. PDF: chrome --headless --no-pdf-header-footer --print-to-pdf="out.pdf" "file:///абсолютный/путь.html"
+-->
+<style>
+/* ─── ПРОФИЛЬ БРЕНДА ОТПРАВИТЕЛЯ ───────────────────────────────────
+   Пять ручек. Заполняются по сайту компании-отправителя.
+   Как их доставать и готовые сочетания — references/brand-profile.md
+   1) шрифт  2) акцентный цвет  3) скругления  4) форма паттерна  5) вес заголовков */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --accent: #2b5fd9;
+  --accent-soft: #eef2fd;
+  --ink: #14141b;
+  --ink-dim: #62626f;
+  --line: #e5e5ec;
+  --bg-soft: #f7f7fa;
+  --bad: #d23f31;
+  --bad-soft: #fdeeec;
+  --good: #1f9254;
+  --good-soft: #eaf6ef;
+  --need: #e8930c;
+  --need-soft: #fff6e5;
+  /* тона иллюстраций из assets/illustrations/ */
+  --illo-ink: #2f2e41;
+  --illo-ink2: #3f3d56;
+  --illo-alt: #c9c9d4;
+
+  /* ручки профиля */
+  --font: 'Inter', -apple-system, sans-serif;
+  --radius-lg: 4mm;    /* плитки, карточки, врезки */
+  --radius-md: 3mm;    /* полосы сравнения, блоки */
+  --radius-sm: 2mm;    /* чипы, ярлыки */
+  --radius-xs: 1mm;    /* подсветка числа */
+  --w-head: 600;       /* вес заголовков полос */
+  --w-cover: 800;      /* вес заголовка обложки */
+}
+
+html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+@page { size: 338mm 190mm; margin: 0; }
+
+body {
+  font-family: var(--font);
+  color: var(--ink);
+  font-size: 13pt;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- Полоса ---------- */
+.slide {
+  width: 338mm; height: 190mm;
+  padding: 15mm 18mm 13mm;
+  page-break-after: always;
+  display: flex; flex-direction: column;
+  position: relative; overflow: hidden;
+}
+.slide:last-child { page-break-after: auto; }
+
+.slide h2 {
+  flex-shrink: 0;
+  font-size: 30pt; font-weight: var(--w-head); letter-spacing: -0.025em; line-height: 1.08;
+  margin-bottom: 4mm; max-width: 250mm;
+}
+.slide h2 .sub { display: block; font-size: 13pt; font-weight: 400; color: var(--ink-dim); margin-top: 2mm; }
+.rule { width: 60px; height: 5px; background: var(--accent); border-radius: var(--radius-xs); margin-bottom: 7mm; flex-shrink: 0; }
+.body { flex: 1; display: flex; flex-direction: column; justify-content: flex-start; }
+.body.is-centered { justify-content: center; }
+.foot { font-size: 9pt; color: var(--ink-dim); padding-top: 4mm; flex-shrink: 0; }
+
+h3 { font-size: 14pt; font-weight: 600; margin-bottom: 3mm; }
+p + p { margin-top: 3mm; }
+strong { font-weight: 600; }
+.muted { color: var(--ink-dim); }
+.lead-text { font-size: 15pt; line-height: 1.5; max-width: 210mm; }
+
+/* ---------- Обложка ---------- */
+.cover { justify-content: space-between; }
+.cover::before {
+  content: ""; position: absolute; right: -42mm; bottom: -42mm;
+  width: 148mm; height: 148mm; border-radius: 50%;
+  border: 22mm solid var(--accent); opacity: 0.11;
+}
+.cover .logo-slot {
+  height: 12mm; display: flex; align-items: center;
+  font-size: 11pt; color: var(--ink-dim); margin-bottom: 4mm;
+}
+.cover .kicker { color: var(--accent); font-weight: 600; font-size: 11pt; text-transform: uppercase; letter-spacing: 0.1em; }
+.cover h1 { font-size: 46pt; font-weight: var(--w-cover); letter-spacing: -0.03em; line-height: 1.05; max-width: 250mm; }
+.cover .who { font-size: 15pt; }
+.cover .who .to { color: var(--ink-dim); font-size: 11pt; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 2mm; }
+.cover .meta { display: flex; justify-content: space-between; align-items: flex-end; font-size: 11pt; color: var(--ink-dim); }
+
+/* ---------- Фоновый паттерн полосы ----------
+   Едва заметная фирменная геометрия акцентным цветом. Держит целостность,
+   внимание не отвлекает. Ставить на все полосы, кроме инверсной.        */
+.slide::after {
+  content: ""; position: absolute; right: -40mm; top: -40mm;
+  width: 130mm; height: 130mm; border-radius: 50%;
+  border: 18mm solid var(--accent); opacity: 0.05; pointer-events: none;
+}
+.slide.no-pattern::after, .slide.cover::after { display: none; }
+
+/* форма паттерна — ручка профиля. Класс ставится на тег body, не на полосу. */
+body.pat-band .slide::after {
+  right: auto; top: 0; left: 62%;
+  width: 34mm; height: 100%; border: none; border-radius: 0;
+  background: var(--accent); transform: skewX(-14deg); opacity: 0.045;
+}
+body.pat-band .slide.is-inverted::after { background: #fff; opacity: 0.07; }
+body.pat-none .slide::after { display: none; }
+body.pat-band .cover::before, body.pat-none .cover::before {
+  right: auto; bottom: 0; left: 66%; top: 0;
+  width: 46mm; height: 100%; border: none; border-radius: 0;
+  background: var(--accent); transform: skewX(-14deg); opacity: 0.10;
+}
+
+/* ---------- Инверсная полоса: смена ритма вместо фотофона ---------- */
+.slide.is-inverted { background: var(--accent); color: #fff; }
+.slide.is-inverted h2 { color: #fff; }
+.slide.is-inverted .rule { background: #fff; opacity: 0.5; }
+.slide.is-inverted .sub, .slide.is-inverted .muted, .slide.is-inverted .foot { color: rgba(255,255,255,0.75); }
+.slide.is-inverted::after { border-color: #fff; opacity: 0.08; }
+.slide.is-inverted .big-claim { font-size: 40pt; font-weight: 800; letter-spacing: -0.03em; line-height: 1.15; max-width: 240mm; }
+
+/* ---------- Номер полосы ---------- */
+.slide .pageno { position: absolute; right: 18mm; bottom: 10mm; font-size: 9pt; color: var(--ink-dim); }
+.slide.is-inverted .pageno { color: rgba(255,255,255,0.6); }
+
+/* ---------- Вертикальный ярлык блока ---------- */
+.tagged { display: flex; gap: 6mm; align-items: stretch; }
+.vtag {
+  writing-mode: vertical-rl; transform: rotate(180deg);
+  background: var(--accent); color: #fff; border-radius: var(--radius-sm);
+  padding: 4mm 2.5mm; font-size: 10pt; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.vtag.is-bad { background: var(--bad); }
+.vtag.is-good { background: var(--good); }
+
+/* ---------- Подсветка числа внутри текста ----------
+   Не отдельная плашка, а хайлайт по месту. Глаз выхватывает цифру,
+   не выходя из чтения. Подсвечивать ТОЛЬКО числа, не фразы.          */
+mark {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: inherit; font-weight: 600; padding: 0.4mm 1.5mm; border-radius: var(--radius-xs);
+}
+mark.is-bad { background: color-mix(in srgb, var(--bad) 14%, transparent); }
+mark.is-good { background: color-mix(in srgb, var(--good) 16%, transparent); }
+
+/* ---------- Иконки из assets/icons.svg ---------- */
+.ico { width: 1em; height: 1em; vertical-align: -0.12em; flex-shrink: 0; }
+.ico-lg { width: 7mm; height: 7mm; }
+.icolist { list-style: none; }
+.icolist li { display: flex; gap: 3.5mm; align-items: flex-start; margin-bottom: 3mm; font-size: 12pt; line-height: 1.45; }
+.icolist .ico-lg { margin-top: 0.5mm; }
+.icolist.is-bad { color: inherit; }
+.icolist.is-bad .ico-lg { color: var(--bad); }
+.icolist.is-good .ico-lg { color: var(--good); }
+
+/* ---------- Иллюстрация ----------
+   Вставлять ИНЛАЙНОМ (через <img> переменные не наследуются и перекраска не сработает).
+   Только на полосы без данных. Максимум три на деку.                    */
+.illo { display: flex; align-items: center; justify-content: center; }
+.illo svg { width: 100%; height: 100%; max-height: 85mm; }
+.illo.is-side { width: 90mm; flex-shrink: 0; }
+.split { display: flex; gap: 12mm; align-items: center; }
+.split > .col { flex: 1; }
+
+/* ---------- Крупные числа ---------- */
+.kpi-row { display: flex; gap: 8mm; }
+.kpi { flex: 1; padding: 7mm 8mm; border-radius: var(--radius-lg); background: var(--bg-soft); }
+.kpi.is-bad { background: var(--bad-soft); }
+.kpi.is-good { background: var(--good-soft); }
+.kpi.is-accent { background: var(--accent-soft); }
+.kpi .label { font-size: 10pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-dim); margin-bottom: 3mm; }
+.kpi.is-bad .label { color: var(--bad); }
+.kpi.is-good .label { color: var(--good); }
+.kpi.is-accent .label { color: var(--accent); }
+.kpi .num { font-size: 42pt; font-weight: 800; letter-spacing: -0.03em; line-height: 1; white-space: nowrap; }
+.kpi .num .unit { display: block; font-size: 14pt; font-weight: 600; letter-spacing: 0; margin-top: 2mm; color: var(--ink-dim); }
+.kpi.is-bad .num { color: var(--bad); }
+.kpi.is-good .num { color: var(--good); }
+.kpi.is-accent .num { color: var(--accent); }
+.kpi .note { font-size: 11pt; color: var(--ink-dim); margin-top: 3mm; line-height: 1.4; }
+
+/* ---------- Расчёт: откуда цифра ---------- */
+.calc { border: 1px solid var(--line); border-radius: var(--radius-md); padding: 5mm 6mm; font-size: 11pt; color: var(--ink-dim); }
+.calc b { color: var(--ink); }
+
+/* ---------- Сравнение двух сценариев ----------
+   Одно сравнение = две полосы. НЕ рисовать по полосе на каждый год:
+   девять одинаковых баров не добавляют информации к одному числу,
+   а мелкие значения от скругления превращаются в кружки.            */
+.compare { display: flex; flex-direction: column; gap: 9mm; }
+.crow .cap { font-size: 13pt; font-weight: 600; margin-bottom: 3mm; }
+.crow.is-bad .cap { color: var(--bad); }
+.crow.is-good .cap { color: var(--accent); }
+.crow .track { display: flex; align-items: center; gap: 5mm; }
+.crow .fill {
+  height: 18mm; border-radius: var(--radius-md); display: flex; align-items: center;
+  padding: 0 6mm; min-width: 40mm; max-width: 72%;
+}
+.crow .breakdown { flex: 1; }
+.crow.is-bad .fill { background: var(--bad); }
+.crow.is-good .fill { background: var(--accent); }
+.crow .fill .num { font-size: 28pt; font-weight: 800; color: #fff; letter-spacing: -0.02em; white-space: nowrap; }
+.crow .breakdown { font-size: 11.5pt; color: var(--ink-dim); line-height: 1.4; max-width: 90mm; }
+.compare-note { font-size: 11.5pt; color: var(--ink-dim); margin-top: 7mm; }
+
+/* ---------- Проблема → решение → результат ---------- */
+table { width: 100%; border-collapse: collapse; font-size: 11.5pt; }
+th { text-align: left; font-weight: 700; font-size: 9.5pt; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-dim); padding: 0 6mm 3mm 0; border-bottom: 1px solid var(--line); }
+td { padding: 4mm 6mm; border-bottom: 1px solid var(--line); vertical-align: top; }
+table.ruled th, table.ruled td { border-right: 1px solid var(--line); }
+table.ruled th:first-child, table.ruled td:first-child { padding-left: 0; }
+table.ruled th:last-child, table.ruled td:last-child { border-right: none; }
+th { padding: 0 6mm 3mm; }
+th:first-child { padding-left: 0; }
+th:last-child, td:last-child { padding-right: 0; }
+tr { page-break-inside: avoid; }
+.chip { display: inline-block; background: var(--accent-soft); color: var(--accent); font-weight: 600; padding: 1.5mm 3mm; border-radius: var(--radius-sm); font-size: 11pt; }
+
+/* ---------- Кейс ---------- */
+.cases { display: flex; gap: 6mm; }
+.case { flex: 1; border: 1px solid var(--line); border-radius: var(--radius-md); padding: 6mm; display: flex; flex-direction: column; }
+.case .who { font-size: 14pt; font-weight: 700; }
+.case .who-desc { font-size: 10.5pt; color: var(--ink-dim); margin: 1mm 0 4mm; line-height: 1.35; }
+.case .cap { font-size: 9pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-dim); margin: 3mm 0 1.5mm; }
+.case ul { padding-left: 5mm; font-size: 11pt; line-height: 1.4; }
+.case .result { margin-top: auto; padding-top: 4mm; }
+.case .result .num { font-size: 22pt; font-weight: 800; color: var(--accent); letter-spacing: -0.02em; }
+
+/* ---------- Этапы ---------- */
+.timeline { display: flex; gap: 5mm; }
+.step { flex: 1; padding-top: 8mm; position: relative; }
+.step::before { content: ""; position: absolute; top: 3mm; left: 0; right: 0; height: 2px; background: var(--line); }
+.step::after { content: ""; position: absolute; top: 1mm; left: 0; width: 6mm; height: 6mm; border-radius: 50%; background: var(--accent); }
+.step .when { font-size: 10pt; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 2mm; }
+.step .what { font-size: 11.5pt; line-height: 1.4; }
+
+/* ---------- Что нужно от клиента ---------- */
+.from-client { background: var(--bg-soft); border-radius: var(--radius-md); padding: 6mm 7mm; }
+.from-client ul { padding-left: 5mm; font-size: 12pt; line-height: 1.6; }
+
+/* ---------- Следующий шаг ---------- */
+.cta { border: 3px solid var(--accent); border-radius: var(--radius-lg); padding: 9mm 10mm; }
+.cta .what { font-size: 22pt; font-weight: 700; letter-spacing: -0.02em; }
+.cta .when { font-size: 14pt; color: var(--accent); font-weight: 600; margin-top: 3mm; }
+
+</style>
+</head>
+<body>
+
+<!--
+  ИКОНКИ. Вставить сюда содержимое assets/icons.svg (спрайт, display:none),
+  дальше ставить так:  <svg class="ico ico-lg"><use href="#ico-check"></use></svg>
+  Цвет иконки = color родителя.
+
+  ИЛЛЮСТРАЦИИ. Вставлять ИНЛАЙНОМ — скопировать содержимое файла из
+  assets/illustrations/ прямо в .illo. Через <img> перекраска не работает.
+  Каталог и правила постановки — assets/illustrations/README.md.
+-->
+
+<!-- ═══════════ 1. ОБЛОЖКА ═══════════ -->
+<section class="slide cover">
+  <div>
+    <div class="logo-slot">[ логотип отправителя ]</div>
+    <div class="kicker">Коммерческое предложение</div>
+  </div>
+  <div>
+    <h1>Заголовок: что предлагаем и что клиент получает</h1>
+  </div>
+  <div class="who">
+    <div class="to">Для</div>
+    <strong>Имя Отчество</strong>, должность · Компания
+  </div>
+  <div class="meta">
+    <div>Компания-отправитель</div>
+    <div>Дата</div>
+  </div>
+</section>
+
+<!-- ═══════════ 2. A — ЧТО ПРОИСХОДИТ СЕЙЧАС ═══════════ -->
+<section class="slide">
+  <h2>Заголовок-вывод: во что обходится текущее положение</h2>
+  <div class="rule"></div>
+  <div class="body">
+    <div class="tagged">
+      <div class="vtag is-bad">Проблема</div>
+      <div>
+        <p class="lead-text">Ссылка на встречу или пилот и проблема словами клиента. Числа внутри абзаца подсвечиваются: теряется <mark class="is-bad">0,0 млн ₽ в год</mark> — глаз выхватывает цифру, не выходя из чтения.</p>
+      </div>
+    </div>
+
+    <div class="kpi-row" style="margin-top:8mm">
+      <div class="kpi is-bad">
+        <div class="label">Составляющая</div>
+        <div class="num">0,0<span class="unit">млн ₽ в год</span></div>
+        <div class="note">из чего складывается</div>
+      </div>
+      <div class="kpi is-bad">
+        <div class="label">Составляющая</div>
+        <div class="num">0,0<span class="unit">млн ₽ в год</span></div>
+        <div class="note">из чего складывается</div>
+      </div>
+    </div>
+
+    <div class="calc" style="margin-top:7mm">
+      <b>Как посчитано.</b> Исходные числа и формула. Допущения назвать явно.
+    </div>
+  </div>
+  <div class="pageno">2</div>
+</section>
+
+<!-- ═══════════ 3. ГОРИЗОНТ ═══════════ -->
+<section class="slide">
+  <h2>Заголовок-вывод: во сколько раз дороже<span class="sub">Сравнение двух сценариев, одна шкала</span></h2>
+  <div class="rule"></div>
+  <div class="body is-centered">
+    <div class="compare">
+      <div class="crow is-bad">
+        <div class="cap">Если ничего не менять</div>
+        <div class="track">
+          <div class="fill" style="width:100%"><span class="num">0,0 млн ₽</span></div>
+          <div class="breakdown">из чего складывается</div>
+        </div>
+      </div>
+      <div class="crow is-good">
+        <div class="cap">С нашим решением</div>
+        <div class="track">
+          <div class="fill" style="width:20%"><span class="num">0,0 млн ₽</span></div>
+          <div class="breakdown">из чего складывается</div>
+        </div>
+      </div>
+    </div>
+    <div class="compare-note">Ширина второй полосы = её значение / значение первой × 100%. Обе от одного максимума.</div>
+  </div>
+  <div class="pageno">3</div>
+</section>
+
+<!-- ═══════════ 4. ИНВЕРСНАЯ ПОЛОСА — смена ритма ═══════════
+     Ставить ОДИН раз на деку, на самом сильном утверждении.
+     Две инверсные полосы обесценивают друг друга.                -->
+<section class="slide is-inverted">
+  <h2>Ключевое утверждение</h2>
+  <div class="rule"></div>
+  <div class="body is-centered">
+    <div class="big-claim">Одна фраза, ради которой написан весь документ. Цифра, а не обещание.</div>
+  </div>
+  <div class="pageno">4</div>
+</section>
+
+<!-- ═══════════ 5. ПРОБЛЕМА → РЕШЕНИЕ → РЕЗУЛЬТАТ ═══════════ -->
+<section class="slide">
+  <h2>Заголовок-вывод: что именно закрывается</h2>
+  <div class="rule"></div>
+  <div class="body">
+    <table class="ruled">
+      <tr><th style="width:32%">Проблема</th><th style="width:38%">Решение</th><th>Результат</th></tr>
+      <tr><td>…</td><td>…</td><td><span class="chip">цифра</span></td></tr>
+      <tr><td>…</td><td>…</td><td><span class="chip">цифра</span></td></tr>
+    </table>
+  </div>
+  <div class="pageno">5</div>
+</section>
+
+<!-- ═══════════ 6. B — ПОЧЕМУ МЫ ═══════════ -->
+<section class="slide">
+  <h2>Что именно предлагаем</h2>
+  <div class="rule"></div>
+  <div class="body">
+    <div class="split">
+      <div class="col">
+        <p class="lead-text">Состав простыми словами: что входит, что не входит. <span class="muted">(Resonance)</span></p>
+        <h3 style="margin-top:7mm">Чем отличаемся от других</h3>
+        <p class="lead-text">Проверяемое отличие от альтернативы, а не «индивидуальный подход». <span class="muted">(Differentiation)</span></p>
+      </div>
+      <div class="illo is-side">
+        <!-- сюда инлайном содержимое assets/illustrations/solution-mindset.svg -->
+      </div>
+    </div>
+  </div>
+  <div class="pageno">6</div>
+</section>
+
+<!-- ═══════════ 7. ЧЕМ ПОДТВЕРЖДАЕТСЯ ═══════════ -->
+<section class="slide">
+  <h2>Чем это подтверждается</h2>
+  <div class="rule"></div>
+  <div class="body">
+    <ul class="icolist is-good" style="margin-top:4mm">
+      <li><svg class="ico ico-lg"><use href="#ico-check"></use></svg><span>Проверяемый факт с цифрой</span></li>
+      <li><svg class="ico ico-lg"><use href="#ico-check"></use></svg><span>Проверяемый факт с цифрой</span></li>
+      <li><svg class="ico ico-lg"><use href="#ico-check"></use></svg><span>Проверяемый факт с цифрой</span></li>
+    </ul>
+  </div>
+  <div class="pageno">7</div>
+</section>
+
+<!-- ═══════════ 8. C — ОПЫТ ═══════════ -->
+<section class="slide">
+  <h2>Опыт<span class="sub">Проекты в вашей индустрии</span></h2>
+  <div class="rule"></div>
+  <div class="body">
+    <div class="cases">
+      <div class="case">
+        <div class="who">Заказчик</div>
+        <div class="who-desc">Кто это — отрасль, масштаб</div>
+        <div class="cap">Что болело</div><ul><li>…</li></ul>
+        <div class="cap">Что сделали</div><ul><li>…</li></ul>
+        <div class="result"><div class="cap">Результат</div><div class="num">цифра</div></div>
+      </div>
+      <div class="case">
+        <div class="who">Заказчик</div>
+        <div class="who-desc">Кто это — отрасль, масштаб</div>
+        <div class="cap">Что болело</div><ul><li>…</li></ul>
+        <div class="cap">Что сделали</div><ul><li>…</li></ul>
+        <div class="result"><div class="cap">Результат</div><div class="num">цифра</div></div>
+      </div>
+      <div class="case">
+        <div class="who">Кому можно позвонить</div>
+        <div class="who-desc">Клиенты, готовые рассказать про работу с нами</div>
+        <ul><li>Компания — Имя, должность, контакт</li></ul>
+      </div>
+    </div>
+  </div>
+  <div class="pageno">8</div>
+</section>
+
+<!-- ═══════════ 9. D — ЭТАПЫ ═══════════ -->
+<section class="slide">
+  <h2>Заголовок-вывод: сколько времени займёт<span class="sub">Общий срок — N</span></h2>
+  <div class="rule"></div>
+  <div class="body">
+    <div class="timeline">
+      <div class="step"><div class="when">срок</div><div class="what">Что происходит</div></div>
+      <div class="step"><div class="when">срок</div><div class="what">Что происходит</div></div>
+      <div class="step"><div class="when">срок</div><div class="what">Что происходит</div></div>
+      <div class="step"><div class="when">срок</div><div class="what">Что происходит</div></div>
+    </div>
+
+    <div class="from-client" style="margin-top:10mm">
+      <h3>Что потребуется от вас</h3>
+      <ul class="icolist" style="margin-top:3mm">
+        <li><svg class="ico ico-lg" style="color:var(--accent)"><use href="#ico-users"></use></svg><span>Люди: чьи специалисты и сколько их времени</span></li>
+        <li><svg class="ico ico-lg" style="color:var(--accent)"><use href="#ico-doc"></use></svg><span>Информация: что будем запрашивать</span></li>
+        <li><svg class="ico ico-lg" style="color:var(--accent)"><use href="#ico-clock"></use></svg><span>Что делаете своими силами</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="pageno">9</div>
+</section>
+
+<!-- ═══════════ 10. СТОИМОСТЬ ═══════════ -->
+<section class="slide">
+  <h2>Стоимость</h2>
+  <div class="rule"></div>
+  <div class="body">
+    <table class="ruled">
+      <tr><th>Что</th><th style="text-align:right;width:26%">Сколько</th></tr>
+      <tr><td>Первый год: из чего складывается</td><td style="text-align:right"><strong>0,0 млн ₽</strong></td></tr>
+      <tr><td>Со второго года</td><td style="text-align:right"><strong>0,0 млн ₽ в год</strong></td></tr>
+    </table>
+  </div>
+  <div class="pageno">10</div>
+</section>
+
+<!-- ═══════════ 11. СЛЕДУЮЩИЙ ШАГ ═══════════ -->
+<section class="slide">
+  <h2>Следующий шаг</h2>
+  <div class="rule"></div>
+  <div class="body is-centered">
+    <div class="split">
+      <div class="col">
+        <div class="cta">
+          <div class="what">Конкретное действие</div>
+          <div class="when">до ДД.ММ · инициирует — кто</div>
+        </div>
+      </div>
+      <div class="illo is-side">
+        <!-- сюда инлайном assets/illustrations/moving-forward.svg -->
+      </div>
+    </div>
+  </div>
+  <div class="pageno">11</div>
+</section>
+
+</body>
+</html>
