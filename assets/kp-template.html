@@ -10,6 +10,10 @@
   1. --accent — фирменный цвет компании ОТПРАВИТЕЛЯ. Достать точный hex с их сайта, не подбирать на глаз.
      --accent-soft — тот же цвет с прозрачностью ~8%.
   2. Одна полоса = один смысловой блок. Не запихивать два блока на полосу.
+     Порядок полос — по структуре документа из references/methodology.md:
+     оффер → задача клиента и почему сейчас → план решения → ожидаемые результаты →
+     стоимость и расчёт → риски и допущения → следующий шаг → кейсы → о компании.
+     «О компании» — последним, а не первым. «Риски и допущения» не пропускать.
   3. Неиспользуемые компоненты удалять вместе с полосой. Пустых заголовков не оставлять.
   4. Крупные числа (.kpi .num) — это якоря. На полосе их максимум три, иначе ни одно не работает.
   5. Дека — ЧИСТОВОЙ документ. Плейсхолдеров в ней нет: ни [НУЖНО], ни ___, ни «указать».
@@ -485,6 +489,31 @@ tr { page-break-inside: avoid; }
   <div class="pageno">10</div>
 </section>
 
+<!-- ═══════════ 10б. РИСКИ И ДОПУЩЕНИЯ ═══════════
+     Обязательный блок, а не признак слабости: названный риск снижается,
+     умолчанный всплывает после подписания — и уже как претензия.        -->
+<section class="slide">
+  <h2>Риски и допущения<span class="sub">Из чего мы исходим и на чём проект может съехать</span></h2>
+  <div class="rule"></div>
+  <div class="body">
+    <table class="ruled" style="margin-top:3mm">
+      <tr><th style="width:44%">Что может пойти не так</th><th>Что это снимает</th></tr>
+      <tr><td>…</td><td>…</td></tr>
+      <tr><td>…</td><td>…</td></tr>
+    </table>
+
+    <div class="from-client" style="margin-top:9mm">
+      <h3>Из чего мы исходим</h3>
+      <ul class="icolist" style="margin-top:3mm;padding-left:0">
+        <li><svg class="ico ico-lg" style="color:var(--accent)"><use href="#ico-doc"></use></svg><span>Допущения расчёта и сроков — и что меняется, если они не подтвердятся</span></li>
+        <li><svg class="ico ico-lg" style="color:var(--accent)"><use href="#ico-users"></use></svg><span>Кто за что отвечает на каждом этапе</span></li>
+        <li><svg class="ico ico-lg" style="color:var(--accent)"><use href="#ico-check"></use></svg><span>Что считается сделанным — критерии приёмки</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="pageno">11</div>
+</section>
+
 <!-- ═══════════ 11. СЛЕДУЮЩИЙ ШАГ ═══════════ -->
 <section class="slide">
   <h2>Следующий шаг</h2>
@@ -502,7 +531,7 @@ tr { page-break-inside: avoid; }
       </div>
     </div>
   </div>
-  <div class="pageno">11</div>
+  <div class="pageno">12</div>
 </section>
 
 </body>
